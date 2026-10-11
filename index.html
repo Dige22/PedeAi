@@ -32,49 +32,63 @@
   <dialog class="dialog" id="cartDialog">
     <form method="dialog" class="dialog-card cart-card" id="orderForm">
       <div class="dialog-head">
-        <strong>Seu pedido</strong>
+        <strong id="cartTitle">Seu pedido</strong>
         <button class="icon-button" id="cartClose" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <div id="cartLines"></div>
-      <div class="totals" id="cartTotals"></div>
-
-      <div class="checkout-grid">
-        <label>
-          Nome
-          <input id="clientName" type="text" autocomplete="name" required>
-        </label>
-        <label>
-          Entrega ou retirada
-          <select id="fulfillment">
-            <option>Entrega</option>
-            <option>Retirada</option>
-          </select>
-        </label>
-        <label>
-          Pagamento
-          <select id="paymentMethod"></select>
-        </label>
+      <div class="checkout-steps" aria-label="Etapas do pedido">
+        <span class="active" id="cartStepOne">1</span>
+        <span id="cartStepTwo">2</span>
       </div>
-
-      <div id="addressFields">
-        <label class="full-label">
-          Endereço
-          <input id="clientAddress" type="text" autocomplete="street-address" placeholder="Rua, número, bairro">
-        </label>
-        <label class="full-label">
-          Complemento ou referência
-          <input id="clientReference" type="text" placeholder="Apto, bloco, ponto de referência">
-        </label>
-      </div>
-
-      <label class="full-label">
-        Observações
-        <textarea id="orderNotes" placeholder="Ex.: tirar cebola, troco para R$ 50, ponto da carne..."></textarea>
-      </label>
-
       <div class="form-error" id="formError"></div>
-      <button class="button whatsapp" id="sendOrder" value="default">Enviar pelo WhatsApp</button>
+
+      <section id="cartItemsStep">
+        <div id="cartLines"></div>
+        <div class="totals" id="cartTotals"></div>
+
+        <label class="full-label">
+          Observações
+          <textarea id="orderNotes" placeholder="Ex.: tirar cebola, troco para R$ 50, ponto da carne..."></textarea>
+        </label>
+
+        <button class="button checkout-next" id="checkoutNext" type="button">Continuar</button>
+      </section>
+
+      <section id="cartInfoStep" hidden>
+        <div class="checkout-grid">
+          <label>
+            Nome
+            <input id="clientName" type="text" autocomplete="name" required>
+          </label>
+          <label>
+            Entrega ou retirada
+            <select id="fulfillment">
+              <option>Entrega</option>
+              <option>Retirada</option>
+            </select>
+          </label>
+          <label>
+            Pagamento
+            <select id="paymentMethod"></select>
+          </label>
+        </div>
+
+        <div id="addressFields">
+          <label class="full-label">
+            Endereço
+            <input id="clientAddress" type="text" autocomplete="street-address" placeholder="Rua, número, bairro">
+          </label>
+          <label class="full-label">
+            Complemento ou referência
+            <input id="clientReference" type="text" placeholder="Apto, bloco, ponto de referência">
+          </label>
+        </div>
+
+        <div class="checkout-actions">
+          <button class="button secondary" id="checkoutBack" type="button">Voltar</button>
+          <button class="button whatsapp" id="sendOrder" value="default">Enviar pelo WhatsApp</button>
+        </div>
+      </section>
     </form>
   </dialog>
 

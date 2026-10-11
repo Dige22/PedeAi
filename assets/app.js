@@ -5,6 +5,7 @@
   var page = document.body.dataset.page;
   var state = emptyState();
   var cart = {};
+  var cartStep = "items";
   var activeCategory = "Todos";
   var editingId = null;
   var pendingPhoto = "";
@@ -458,6 +459,18 @@
       renderCartBar();
       $("cartBar").addEventListener("click", openCart);
       $("cartClose").addEventListener("click", function () { $("cartDialog").close(); });
+      $("checkoutNext").addEventListener("click", function () {
+        if (!cartEntries().length) {
+          $("formError").textContent = "Seu carrinho está vazio.";
+          return;
+        }
+        if (subtotal() < Number(state.store.minOrder || 0)) {
+          $("formError").textContent = "O pedido mínimo é " + money(state.store.minOrder) + ".";
+          return;
+        }
+        setCartStep("info");
+      });
+      $("checkoutBack").addEventListener("click", function () { setCartStep("items"); });
       $("fulfillment").addEventListener("change", syncFulfillment);
       $("orderForm").addEventListener("submit", sendOrder);
       restoreClient();
@@ -568,6 +581,7 @@
   }
 
   function openCart() {
+    cartStep = "items";
     renderCartDialog();
     $("cartDialog").showModal();
   }
@@ -579,25 +593,40 @@
         '<div class="line-total"><div class="stepper"><button type="button" data-dec="' + entry.item.id + '">−</button><span>' + entry.quantity + '</span><button type="button" data-add="' + entry.item.id + '">+</button></div><small>' + money(entry.item.price * entry.quantity) + '</small></div></div>';
     }).join("");
 
-    $("cartTotals").innerHTML = totalsHtml();
+    $("cartTotals").innerHTML = totalsHtml(false);
     $("paymentMethod").innerHTML = state.store.payments.map(function (payment) {
       return '<option>' + escapeHtml(payment) + "</option>";
     }).join("");
 
     bindQuantityButtons($("cartLines"));
     syncFulfillment();
+    setCartStep(cartStep);
   }
 
-  function totalsHtml() {
+  function setCartStep(step) {
+    cartStep = step;
+    var isInfo = step === "info";
+    $("cartItemsStep").hidden = isInfo;
+    $("cartInfoStep").hidden = !isInfo;
+    $("cartStepOne").className = isInfo ? "" : "active";
+    $("cartStepTwo").className = isInfo ? "active" : "";
+    $("cartTitle").textContent = isInfo ? "Dados do pedido" : "Seu pedido";
+    $("formError").textContent = "";
+    if (isInfo) {
+      $("clientName").focus();
+    }
+  }
+
+  function totalsHtml(includeDelivery) {
     return '<div class="total-row"><span>Subtotal</span><strong>' + money(subtotal()) + '</strong></div>' +
-      (deliveryFee() > 0 ? '<div class="total-row"><span>Entrega</span><strong>' + money(deliveryFee()) + '</strong></div>' : "") +
-      '<div class="total-row grand"><span>Total</span><strong>' + money(total()) + '</strong></div>';
+      (includeDelivery && deliveryFee() > 0 ? '<div class="total-row"><span>Entrega</span><strong>' + money(deliveryFee()) + '</strong></div>' : "") +
+      '<div class="total-row grand"><span>Total dos itens</span><strong>' + money(subtotal()) + '</strong></div>';
   }
 
   function syncFulfillment() {
     var delivery = $("fulfillment").value === "Entrega";
     $("addressFields").style.display = delivery ? "block" : "none";
-    if ($("cartDialog").open) $("cartTotals").innerHTML = totalsHtml();
+    if ($("cartDialog").open) $("cartTotals").innerHTML = totalsHtml(false);
   }
 
   function restoreClient() {
