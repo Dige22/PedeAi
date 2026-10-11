@@ -42,6 +42,8 @@ function db(): PDO
         mkdir($databaseDir, 0750, true);
     }
 
+    restore_legacy_database($databasePath, $config['legacy_database_paths'] ?? []);
+
     $pdo = new PDO('sqlite:' . $databasePath);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
@@ -52,6 +54,27 @@ function db(): PDO
     seed_bootstrap_admin($pdo);
 
     return $pdo;
+}
+
+function restore_legacy_database(string $databasePath, array $legacyPaths): void
+{
+    if (is_file($databasePath) && filesize($databasePath) > 0) {
+        return;
+    }
+
+    foreach ($legacyPaths as $legacyPath) {
+        if (!is_string($legacyPath) || $legacyPath === $databasePath) {
+            continue;
+        }
+
+        if (!is_file($legacyPath) || filesize($legacyPath) <= 0) {
+            continue;
+        }
+
+        copy($legacyPath, $databasePath);
+        @chmod($databasePath, 0640);
+        return;
+    }
 }
 
 function migrate(PDO $pdo): void

@@ -8,7 +8,9 @@ Envie os arquivos para uma aplicação PHP simples. O arquivo de entrada é `ind
 
 ## Banco de dados
 
-O banco SQLite é criado automaticamente em `app/.data/pedeai.sqlite` no primeiro acesso.
+O banco SQLite é criado automaticamente no primeiro acesso.
+
+Em hospedagens com releases, o sistema usa uma pasta compartilhada fora do release atual para não perder dados a cada deploy. Se a variável `PEDEAI_DATA_DIR` existir, ela define o diretório persistente. Caso contrário, em estruturas com `releases/`, o banco fica em `shared/.data/pedeai.sqlite`.
 
 ## Criar administrador
 
