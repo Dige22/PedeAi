@@ -1,5 +1,8 @@
 .deploy/
+.deploy_new/
 pedeai-deploy.zip
 admin (1).html
 .DS_Store
 Thumbs.db
+app/.data/*.sqlite
+app/.data/*.sqlite-*

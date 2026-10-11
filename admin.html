@@ -7,7 +7,25 @@
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body data-page="admin">
-  <header class="topbar">
+  <section class="login-shell" id="loginView" hidden>
+    <form class="login-card" id="loginForm">
+      <span class="brand-mark">P</span>
+      <h1>Acesso administrativo</h1>
+      <p>Entre com um usuário administrador cadastrado no banco de dados.</p>
+      <label>
+        E-mail
+        <input id="loginEmail" type="email" autocomplete="username" required>
+      </label>
+      <label>
+        Senha
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+      </label>
+      <div class="form-error" id="loginError"></div>
+      <button class="button" type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <header class="topbar" id="adminTop" hidden>
     <a class="brand" href="admin.html" aria-label="PedeAi admin">
       <span class="brand-mark">P</span>
       <span>
@@ -16,16 +34,17 @@
       </span>
     </a>
     <nav class="top-actions">
+      <span class="admin-user" id="adminUser"></span>
       <a class="icon-button" href="index.html" title="Ver cardápio" aria-label="Ver cardápio">
         <span aria-hidden="true">↗</span>
       </a>
-      <button class="icon-button" id="resetDemo" title="Restaurar exemplo" aria-label="Restaurar exemplo">
-        <span aria-hidden="true">↺</span>
+      <button class="icon-button" id="logoutButton" title="Sair" aria-label="Sair">
+        <span aria-hidden="true">×</span>
       </button>
     </nav>
   </header>
 
-  <main class="admin-shell">
+  <main class="admin-shell" id="adminView" hidden>
     <section class="panel">
       <div class="section-title">
         <span>
@@ -108,14 +127,13 @@
     <section class="panel">
       <div class="section-title">
         <span>
-          <strong>Backup e publicação</strong>
-          <small>Exporte seus dados ou gere um HTML independente para enviar ao cliente.</small>
+          <strong>Backup</strong>
+          <small>Exporte ou restaure os dados do banco deste cardápio.</small>
         </span>
       </div>
       <div class="action-grid">
         <button class="button secondary" id="exportData">Exportar backup</button>
         <button class="button secondary" id="importData">Importar backup</button>
-        <button class="button" id="downloadMenu">Baixar cardápio.html</button>
       </div>
       <input id="importFile" type="file" accept="application/json" hidden>
     </section>

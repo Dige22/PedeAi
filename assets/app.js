@@ -1,14 +1,14 @@
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "pedeai_state_v1";
   var CLIENT_KEY = "pedeai_client_v1";
   var page = document.body.dataset.page;
-  var state = loadState();
+  var state = emptyState();
   var cart = {};
   var activeCategory = "Todos";
   var editingId = null;
   var pendingPhoto = "";
+  var saveTimer = null;
 
   var PAYMENTS = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito", "Vale-refeição"];
 
@@ -16,82 +16,44 @@
     return document.getElementById(id);
   }
 
-  function defaultState() {
+  function emptyState() {
     return {
       store: {
-        name: "PedeAi Burger",
-        subtitle: "Hambúrguer artesanal, porções e bebidas geladas.",
-        address: "Atendimento local e delivery",
+        name: "PedeAi",
+        subtitle: "Cardápio virtual com pedido pelo WhatsApp.",
+        address: "",
         whatsapp: "",
-        deliveryFee: 5,
-        minOrder: 20,
+        deliveryFee: 0,
+        minOrder: 0,
         color: "#e8590c",
         status: "Aberto",
-        payments: ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito"]
+        payments: ["Pix", "Dinheiro"]
       },
-      categories: ["Lanches", "Porções", "Bebidas"],
-      items: [
-        {
-          id: makeId(),
-          name: "Burger clássico",
-          category: "Lanches",
-          description: "Pão brioche, hambúrguer 120g, queijo, alface, tomate e molho da casa.",
-          price: 24.9,
-          available: true,
-          photo: ""
-        },
-        {
-          id: makeId(),
-          name: "Batata da casa",
-          category: "Porções",
-          description: "Batata crocante com cheddar e bacon.",
-          price: 19.9,
-          available: true,
-          photo: ""
-        },
-        {
-          id: makeId(),
-          name: "Refrigerante lata",
-          category: "Bebidas",
-          description: "Consulte sabores disponíveis.",
-          price: 6,
-          available: true,
-          photo: ""
-        }
-      ]
+      categories: [],
+      items: []
     };
   }
 
-  function loadState() {
-    if (window.PEDEAI_BOOTSTRAP) return normalizeState(window.PEDEAI_BOOTSTRAP);
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? normalizeState(JSON.parse(raw)) : defaultState();
-    } catch (error) {
-      return defaultState();
-    }
-  }
+  function api(action, options) {
+    options = options || {};
+    var request = {
+      method: options.method || "GET",
+      credentials: "same-origin",
+      headers: options.body ? { "Content-Type": "application/json" } : {}
+    };
+    if (options.body) request.body = JSON.stringify(options.body);
 
-  function normalizeState(value) {
-    var fallback = defaultState();
-    value = value || {};
-    value.store = Object.assign({}, fallback.store, value.store || {});
-    value.categories = Array.isArray(value.categories) && value.categories.length ? value.categories : fallback.categories;
-    value.items = Array.isArray(value.items) ? value.items : [];
-    if (!value.items.length) value.items = fallback.items;
-    return value;
-  }
-
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    setBrandColor();
-    if ($("saveStatus")) {
-      $("saveStatus").textContent = "Salvando...";
-      window.clearTimeout(saveState.timer);
-      saveState.timer = window.setTimeout(function () {
-        $("saveStatus").textContent = "Salvo";
-      }, 450);
-    }
+    return fetch("api.php?action=" + encodeURIComponent(action), request)
+      .then(function (response) {
+        return response.json().catch(function () {
+          return { ok: false, error: "Resposta inválida do servidor." };
+        }).then(function (data) {
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || "Erro na requisição.");
+          }
+          return data;
+        });
+      });
   }
 
   function setBrandColor() {
@@ -185,12 +147,96 @@
 
   function initAdmin() {
     setBrandColor();
-    bindAdminSettings();
-    bindAdminActions();
-    renderAdmin();
+    bindLogin();
+    api("me").then(function (data) {
+      if (data.admin) {
+        showAdmin(data.admin);
+      } else {
+        showLogin();
+      }
+    }).catch(showLogin);
+  }
+
+  function bindLogin() {
+    $("loginForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      $("loginError").textContent = "";
+      api("login", {
+        method: "POST",
+        body: {
+          email: $("loginEmail").value.trim(),
+          password: $("loginPassword").value
+        }
+      }).then(function (data) {
+        $("loginPassword").value = "";
+        showAdmin(data.admin);
+      }).catch(function (error) {
+        $("loginError").textContent = error.message;
+      });
+    });
+
+    $("logoutButton").addEventListener("click", function () {
+      api("logout", { method: "POST", body: {} }).finally(function () {
+        window.location.reload();
+      });
+    });
+  }
+
+  function showLogin() {
+    $("loginView").hidden = false;
+    $("adminTop").hidden = true;
+    $("adminView").hidden = true;
+  }
+
+  function showAdmin(admin) {
+    $("loginView").hidden = true;
+    $("adminTop").hidden = false;
+    $("adminView").hidden = false;
+    $("adminUser").textContent = admin && admin.name ? admin.name : "";
+    loadAdminData();
+  }
+
+  function loadAdminData() {
+    api("admin_data").then(function (data) {
+      state = normalizeState(data.state);
+      setBrandColor();
+      bindAdminSettings();
+      bindAdminActions();
+      renderAdmin();
+    }).catch(function (error) {
+      toast(error.message);
+      showLogin();
+    });
+  }
+
+  function normalizeState(value) {
+    value = value || emptyState();
+    value.store = Object.assign(emptyState().store, value.store || {});
+    value.categories = Array.isArray(value.categories) ? value.categories : [];
+    value.items = Array.isArray(value.items) ? value.items : [];
+    if (!value.categories.length) value.categories = ["Cardápio"];
+    return value;
+  }
+
+  function saveState(immediate) {
+    setBrandColor();
+    if ($("saveStatus")) $("saveStatus").textContent = "Salvando...";
+    window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(function () {
+      api("save_state", { method: "POST", body: { state: state } }).then(function (data) {
+        state = normalizeState(data.state);
+        if ($("saveStatus")) $("saveStatus").textContent = "Salvo";
+      }).catch(function (error) {
+        if ($("saveStatus")) $("saveStatus").textContent = "Erro";
+        toast(error.message);
+      });
+    }, immediate ? 0 : 400);
   }
 
   function bindAdminSettings() {
+    if (bindAdminSettings.done) return;
+    bindAdminSettings.done = true;
+
     $("storeName").addEventListener("input", function () { state.store.name = this.value; saveState(); });
     $("storeWhatsapp").addEventListener("input", function () { state.store.whatsapp = this.value; saveState(); });
     $("storeSubtitle").addEventListener("input", function () { state.store.subtitle = this.value; saveState(); });
@@ -209,6 +255,9 @@
   }
 
   function bindAdminActions() {
+    if (bindAdminActions.done) return;
+    bindAdminActions.done = true;
+
     $("addCategory").addEventListener("click", addCategory);
     $("categoryInput").addEventListener("keydown", function (event) {
       if (event.key === "Enter") addCategory();
@@ -222,14 +271,6 @@
     });
     $("importData").addEventListener("click", function () { $("importFile").click(); });
     $("importFile").addEventListener("change", importData);
-    $("downloadMenu").addEventListener("click", downloadStandaloneMenu);
-    $("resetDemo").addEventListener("click", function () {
-      if (!confirm("Restaurar dados de exemplo? Os dados atuais serão substituídos.")) return;
-      state = defaultState();
-      saveState();
-      renderAdmin();
-      toast("Exemplo restaurado");
-    });
   }
 
   function renderAdmin() {
@@ -267,7 +308,7 @@
         state.items.forEach(function (item) {
           if (item.category === category) item.category = state.categories[0];
         });
-        saveState();
+        saveState(true);
         renderAdmin();
       });
     });
@@ -283,7 +324,7 @@
     }
     state.categories.push(name);
     input.value = "";
-    saveState();
+    saveState(true);
     renderCategories();
     toast("Categoria adicionada");
   }
@@ -373,7 +414,7 @@
     } else {
       state.items.push(data);
     }
-    saveState();
+    saveState(true);
     $("itemDialog").close();
     renderAdminItems();
     toast("Item salvo");
@@ -382,7 +423,7 @@
   function deleteCurrentItem() {
     if (!editingId || !confirm("Excluir este item?")) return;
     state.items = state.items.filter(function (item) { return item.id !== editingId; });
-    saveState();
+    saveState(true);
     $("itemDialog").close();
     renderAdminItems();
     toast("Item excluído");
@@ -395,7 +436,7 @@
     reader.onload = function () {
       try {
         state = normalizeState(JSON.parse(reader.result));
-        saveState();
+        saveState(true);
         renderAdmin();
         toast("Backup importado");
       } catch (error) {
@@ -406,46 +447,21 @@
     this.value = "";
   }
 
-  function standaloneHtml(styles, script) {
-    var data = JSON.stringify(state).replace(/</g, "\\u003c");
-    var safeScript = script.replace(/<\/script/gi, "<\\/script");
-    return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<title>' +
-      escapeHtml(state.store.name || "Cardápio") +
-      '</title>\n<style>\n' + styles + '\n</style>\n</head>\n<body data-page="menu">\n' +
-      '<header class="menu-hero"><div class="hero-content"><span class="status-pill" id="publicStatus">Aberto</span><h1 id="publicName">PedeAi</h1><p id="publicSubtitle">Cardápio virtual com pedido pelo WhatsApp.</p><div class="hero-meta"><span id="publicAddress">Configure sua loja no painel</span><span id="publicMinOrder"></span></div></div></header>\n' +
-      '<main class="menu-shell"><section class="category-tabs" id="publicCategories" aria-label="Categorias"></section><section class="menu-grid" id="publicItems"></section></main>\n' +
-      '<button class="cart-bar" id="cartBar" type="button"><span id="cartCount">Carrinho vazio</span><strong id="cartTotal">R$ 0,00</strong></button>\n' +
-      '<dialog class="dialog" id="cartDialog"><form method="dialog" class="dialog-card cart-card" id="orderForm"><div class="dialog-head"><strong>Seu pedido</strong><button class="icon-button" value="cancel" aria-label="Fechar">×</button></div><div id="cartLines"></div><div class="totals" id="cartTotals"></div><div class="checkout-grid"><label>Nome<input id="clientName" type="text" autocomplete="name" required></label><label>Telefone<input id="clientPhone" type="tel" autocomplete="tel"></label><label>Entrega ou retirada<select id="fulfillment"><option>Entrega</option><option>Retirada</option></select></label><label>Pagamento<select id="paymentMethod"></select></label></div><div id="addressFields"><label class="full-label">Endereço<input id="clientAddress" type="text" autocomplete="street-address" placeholder="Rua, número, bairro"></label><label class="full-label">Complemento ou referência<input id="clientReference" type="text" placeholder="Apto, bloco, ponto de referência"></label></div><label class="full-label">Observações<textarea id="orderNotes" placeholder="Ex.: tirar cebola, troco para R$ 50, ponto da carne..."></textarea></label><div class="form-error" id="formError"></div><button class="button whatsapp" id="sendOrder" value="default">Enviar pelo WhatsApp</button></form></dialog>\n' +
-      '<div class="toast" id="toast" role="status" aria-live="polite"></div>\n' +
-      '<script>window.PEDEAI_BOOTSTRAP=' + data + ';</script>\n<script>\n' + safeScript + '\n</script>\n</body>\n</html>';
-  }
-
-  function downloadStandaloneMenu() {
-    if (!state.store.whatsapp.replace(/\D/g, "")) {
-      toast("Informe o WhatsApp antes de publicar");
-      return;
-    }
-    Promise.all([
-      fetch("assets/styles.css").then(function (response) { return response.text(); }),
-      fetch("assets/app.js").then(function (response) { return response.text(); })
-    ]).then(function (parts) {
-      download("cardapio.html", standaloneHtml(parts[0], parts[1]), "text/html;charset=utf-8");
-      toast("cardapio.html gerado");
-    }).catch(function () {
-      toast("Não consegui ler os arquivos do projeto");
-    });
-  }
-
   function initMenu() {
-    setBrandColor();
-    renderPublicHeader();
-    renderPublicCategories();
-    renderPublicItems();
-    renderCartBar();
-    $("cartBar").addEventListener("click", openCart);
-    $("fulfillment").addEventListener("change", syncFulfillment);
-    $("orderForm").addEventListener("submit", sendOrder);
-    restoreClient();
+    api("menu").then(function (data) {
+      state = normalizeState(data.state);
+      setBrandColor();
+      renderPublicHeader();
+      renderPublicCategories();
+      renderPublicItems();
+      renderCartBar();
+      $("cartBar").addEventListener("click", openCart);
+      $("fulfillment").addEventListener("change", syncFulfillment);
+      $("orderForm").addEventListener("submit", sendOrder);
+      restoreClient();
+    }).catch(function (error) {
+      $("publicItems").innerHTML = '<div class="empty-state">' + escapeHtml(error.message) + "</div>";
+    });
   }
 
   function publicItems() {
@@ -458,7 +474,7 @@
     document.title = state.store.name || "PedeAi";
     $("publicName").textContent = state.store.name || "PedeAi";
     $("publicSubtitle").textContent = state.store.subtitle || "Cardápio virtual com pedido pelo WhatsApp.";
-    $("publicAddress").textContent = state.store.address || "Configure sua loja no painel";
+    $("publicAddress").textContent = state.store.address || "Atendimento local e delivery";
     $("publicStatus").textContent = state.store.status || "Aberto";
     $("publicMinOrder").textContent = state.store.minOrder > 0 ? "Mínimo " + money(state.store.minOrder) : "";
   }
@@ -561,10 +577,7 @@
         '<div class="line-total"><div class="stepper"><button type="button" data-dec="' + entry.item.id + '">−</button><span>' + entry.quantity + '</span><button type="button" data-add="' + entry.item.id + '">+</button></div><small>' + money(entry.item.price * entry.quantity) + '</small></div></div>';
     }).join("");
 
-    $("cartTotals").innerHTML = '<div class="total-row"><span>Subtotal</span><strong>' + money(subtotal()) + '</strong></div>' +
-      (deliveryFee() > 0 ? '<div class="total-row"><span>Entrega</span><strong>' + money(deliveryFee()) + '</strong></div>' : "") +
-      '<div class="total-row grand"><span>Total</span><strong>' + money(total()) + '</strong></div>';
-
+    $("cartTotals").innerHTML = totalsHtml();
     $("paymentMethod").innerHTML = state.store.payments.map(function (payment) {
       return '<option>' + escapeHtml(payment) + "</option>";
     }).join("");
@@ -573,14 +586,16 @@
     syncFulfillment();
   }
 
+  function totalsHtml() {
+    return '<div class="total-row"><span>Subtotal</span><strong>' + money(subtotal()) + '</strong></div>' +
+      (deliveryFee() > 0 ? '<div class="total-row"><span>Entrega</span><strong>' + money(deliveryFee()) + '</strong></div>' : "") +
+      '<div class="total-row grand"><span>Total</span><strong>' + money(total()) + '</strong></div>';
+  }
+
   function syncFulfillment() {
     var delivery = $("fulfillment").value === "Entrega";
     $("addressFields").style.display = delivery ? "block" : "none";
-    if ($("cartDialog").open) {
-      $("cartTotals").innerHTML = '<div class="total-row"><span>Subtotal</span><strong>' + money(subtotal()) + '</strong></div>' +
-        (deliveryFee() > 0 ? '<div class="total-row"><span>Entrega</span><strong>' + money(deliveryFee()) + '</strong></div>' : "") +
-        '<div class="total-row grand"><span>Total</span><strong>' + money(total()) + '</strong></div>';
-    }
+    if ($("cartDialog").open) $("cartTotals").innerHTML = totalsHtml();
   }
 
   function restoreClient() {

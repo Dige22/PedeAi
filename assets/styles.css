@@ -15,6 +15,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -89,6 +93,46 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.admin-user {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 20px;
+}
+
+.login-card {
+  display: grid;
+  width: min(380px, 100%);
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.login-card .brand-mark {
+  width: 46px;
+  height: 46px;
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.login-card p {
+  margin: -6px 0 4px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .icon-button {
