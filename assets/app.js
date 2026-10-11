@@ -608,8 +608,6 @@
     var isInfo = step === "info";
     $("cartItemsStep").hidden = isInfo;
     $("cartInfoStep").hidden = !isInfo;
-    $("cartStepOne").className = isInfo ? "" : "active";
-    $("cartStepTwo").className = isInfo ? "active" : "";
     $("cartTitle").textContent = isInfo ? "Dados do pedido" : "Seu pedido";
     $("formError").textContent = "";
     if (isInfo) {

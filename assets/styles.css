@@ -716,31 +716,6 @@ textarea {
   flex-direction: column;
 }
 
-.checkout-steps {
-  display: flex;
-  gap: 8px;
-  margin: -2px 0 14px;
-}
-
-.checkout-steps span {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: #fff;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.checkout-steps span.active {
-  border-color: var(--color);
-  background: var(--color);
-  color: #fff;
-}
-
 .checkout-next {
   width: 100%;
   margin-top: 14px;
