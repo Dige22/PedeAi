@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PedeAi</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="menu">
+  <header class="menu-hero">
+    <div class="hero-content">
+      <a class="admin-link" href="admin.html">Painel</a>
+      <span class="status-pill" id="publicStatus">Aberto</span>
+      <h1 id="publicName">PedeAi</h1>
+      <p id="publicSubtitle">Cardápio virtual com pedido pelo WhatsApp.</p>
+      <div class="hero-meta">
+        <span id="publicAddress">Configure sua loja no painel</span>
+        <span id="publicMinOrder"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="menu-shell">
+    <section class="category-tabs" id="publicCategories" aria-label="Categorias"></section>
+    <section class="menu-grid" id="publicItems"></section>
+  </main>
+
+  <button class="cart-bar" id="cartBar" type="button">
+    <span id="cartCount">Carrinho vazio</span>
+    <strong id="cartTotal">R$ 0,00</strong>
+  </button>
+
+  <dialog class="dialog" id="cartDialog">
+    <form method="dialog" class="dialog-card cart-card" id="orderForm">
+      <div class="dialog-head">
+        <strong>Seu pedido</strong>
+        <button class="icon-button" value="cancel" aria-label="Fechar">×</button>
+      </div>
+
+      <div id="cartLines"></div>
+      <div class="totals" id="cartTotals"></div>
+
+      <div class="checkout-grid">
+        <label>
+          Nome
+          <input id="clientName" type="text" autocomplete="name" required>
+        </label>
+        <label>
+          Telefone
+          <input id="clientPhone" type="tel" autocomplete="tel">
+        </label>
+        <label>
+          Entrega ou retirada
+          <select id="fulfillment">
+            <option>Entrega</option>
+            <option>Retirada</option>
+          </select>
+        </label>
+        <label>
+          Pagamento
+          <select id="paymentMethod"></select>
+        </label>
+      </div>
+
+      <div id="addressFields">
+        <label class="full-label">
+          Endereço
+          <input id="clientAddress" type="text" autocomplete="street-address" placeholder="Rua, número, bairro">
+        </label>
+        <label class="full-label">
+          Complemento ou referência
+          <input id="clientReference" type="text" placeholder="Apto, bloco, ponto de referência">
+        </label>
+      </div>
+
+      <label class="full-label">
+        Observações
+        <textarea id="orderNotes" placeholder="Ex.: tirar cebola, troco para R$ 50, ponto da carne..."></textarea>
+      </label>
+
+      <div class="form-error" id="formError"></div>
+      <button class="button whatsapp" id="sendOrder" value="default">Enviar pelo WhatsApp</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PedeAi - Painel</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="admin">
+  <header class="topbar">
+    <a class="brand" href="admin.html" aria-label="PedeAi admin">
+      <span class="brand-mark">P</span>
+      <span>
+        <strong>PedeAi</strong>
+        <small>Painel do cardápio</small>
+      </span>
+    </a>
+    <nav class="top-actions">
+      <a class="icon-button" href="index.html" title="Ver cardápio" aria-label="Ver cardápio">
+        <span aria-hidden="true">↗</span>
+      </a>
+      <button class="icon-button" id="resetDemo" title="Restaurar exemplo" aria-label="Restaurar exemplo">
+        <span aria-hidden="true">↺</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="admin-shell">
+    <section class="panel">
+      <div class="section-title">
+        <span>
+          <strong>Dados da loja</strong>
+          <small>Essas informações aparecem no cardápio e no WhatsApp.</small>
+        </span>
+        <span class="status-pill" id="saveStatus">Salvo</span>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Nome da loja
+          <input id="storeName" type="text" placeholder="Ex.: Lanchonete do João">
+        </label>
+        <label>
+          WhatsApp dos pedidos
+          <input id="storeWhatsapp" type="tel" inputmode="tel" placeholder="Ex.: 32 99999-9999">
+        </label>
+        <label>
+          Frase curta
+          <input id="storeSubtitle" type="text" placeholder="Ex.: Hambúrguer artesanal e porções">
+        </label>
+        <label>
+          Endereço ou região
+          <input id="storeAddress" type="text" placeholder="Ex.: Centro - Juiz de Fora">
+        </label>
+        <label>
+          Taxa de entrega
+          <input id="deliveryFee" type="text" inputmode="decimal" placeholder="0,00">
+        </label>
+        <label>
+          Pedido mínimo
+          <input id="minOrder" type="text" inputmode="decimal" placeholder="0,00">
+        </label>
+        <label>
+          Cor principal
+          <input id="brandColor" type="color">
+        </label>
+        <label>
+          Status
+          <select id="storeStatus">
+            <option>Aberto</option>
+            <option>Fechado</option>
+            <option>Pausado</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="field-block">
+        <span class="label-text">Formas de pagamento</span>
+        <div class="check-list" id="paymentChecks"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <span>
+          <strong>Categorias</strong>
+          <small>Use nomes curtos para facilitar a navegação no celular.</small>
+        </span>
+      </div>
+      <div class="inline-form">
+        <input id="categoryInput" type="text" placeholder="Nova categoria">
+        <button class="button secondary" id="addCategory">Adicionar</button>
+      </div>
+      <div class="chip-list" id="categoryList"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <span>
+          <strong>Itens do cardápio</strong>
+          <small id="itemCount">0 itens cadastrados</small>
+        </span>
+        <button class="button" id="newItem">Novo item</button>
+      </div>
+      <div class="admin-list" id="adminItems"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <span>
+          <strong>Backup e publicação</strong>
+          <small>Exporte seus dados ou gere um HTML independente para enviar ao cliente.</small>
+        </span>
+      </div>
+      <div class="action-grid">
+        <button class="button secondary" id="exportData">Exportar backup</button>
+        <button class="button secondary" id="importData">Importar backup</button>
+        <button class="button" id="downloadMenu">Baixar cardápio.html</button>
+      </div>
+      <input id="importFile" type="file" accept="application/json" hidden>
+    </section>
+  </main>
+
+  <dialog class="dialog" id="itemDialog">
+    <form method="dialog" class="dialog-card" id="itemForm">
+      <div class="dialog-head">
+        <strong id="dialogTitle">Novo item</strong>
+        <button class="icon-button" value="cancel" aria-label="Fechar">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Nome
+          <input id="itemName" type="text" required placeholder="Ex.: X-burger">
+        </label>
+        <label>
+          Categoria
+          <select id="itemCategory"></select>
+        </label>
+        <label>
+          Preço
+          <input id="itemPrice" type="text" inputmode="decimal" required placeholder="0,00">
+        </label>
+        <label>
+          Foto
+          <input id="itemPhoto" type="file" accept="image/*">
+        </label>
+      </div>
+
+      <label class="full-label">
+        Descrição
+        <textarea id="itemDescription" placeholder="Ingredientes, tamanho, ponto da carne, acompanhamentos..."></textarea>
+      </label>
+
+      <div class="preview-row">
+        <div class="photo-preview" id="photoPreview"></div>
+        <label class="toggle-row">
+          <input id="itemAvailable" type="checkbox" checked>
+          Disponível no cardápio
+        </label>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="button danger" id="deleteItem" type="button">Excluir</button>
+        <span></span>
+        <button class="button secondary" value="cancel">Cancelar</button>
+        <button class="button" id="saveItem" value="default">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
