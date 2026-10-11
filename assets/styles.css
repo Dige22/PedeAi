@@ -836,8 +836,7 @@ textarea {
 
   #cartDialog {
     width: calc(100vw - 12px);
-    height: calc(100dvh - 18px);
-    max-height: none;
+    max-height: calc(100dvh - 18px);
     margin: auto;
   }
 
@@ -846,7 +845,7 @@ textarea {
   }
 
   #cartDialog .dialog-card {
-    min-height: 100%;
+    max-height: inherit;
     border-radius: 12px;
     padding: 18px;
   }
