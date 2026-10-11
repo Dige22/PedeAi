@@ -33,7 +33,7 @@
     <form method="dialog" class="dialog-card cart-card" id="orderForm">
       <div class="dialog-head">
         <strong>Seu pedido</strong>
-        <button class="icon-button" value="cancel" aria-label="Fechar">×</button>
+        <button class="icon-button" id="cartClose" type="button" aria-label="Fechar">×</button>
       </div>
 
       <div id="cartLines"></div>
@@ -43,10 +43,6 @@
         <label>
           Nome
           <input id="clientName" type="text" autocomplete="name" required>
-        </label>
-        <label>
-          Telefone
-          <input id="clientPhone" type="tel" autocomplete="tel">
         </label>
         <label>
           Entrega ou retirada

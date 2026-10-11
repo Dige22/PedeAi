@@ -265,6 +265,7 @@
     $("newItem").addEventListener("click", function () { openItemDialog(); });
     $("itemPhoto").addEventListener("change", onPhotoChange);
     $("itemForm").addEventListener("submit", saveItem);
+    $("itemDialogClose").addEventListener("click", function () { $("itemDialog").close(); });
     $("deleteItem").addEventListener("click", deleteCurrentItem);
     $("exportData").addEventListener("click", function () {
       download("backup-pedeai.json", JSON.stringify(state, null, 2), "application/json;charset=utf-8");
@@ -456,6 +457,7 @@
       renderPublicItems();
       renderCartBar();
       $("cartBar").addEventListener("click", openCart);
+      $("cartClose").addEventListener("click", function () { $("cartDialog").close(); });
       $("fulfillment").addEventListener("change", syncFulfillment);
       $("orderForm").addEventListener("submit", sendOrder);
       restoreClient();
@@ -602,7 +604,6 @@
     try {
       var data = JSON.parse(localStorage.getItem(CLIENT_KEY) || "{}");
       $("clientName").value = data.name || "";
-      $("clientPhone").value = data.phone || "";
       $("clientAddress").value = data.address || "";
       $("clientReference").value = data.reference || "";
     } catch (error) {}
@@ -637,7 +638,6 @@
 
     var client = {
       name: $("clientName").value.trim(),
-      phone: $("clientPhone").value.trim(),
       address: $("clientAddress").value.trim(),
       reference: $("clientReference").value.trim()
     };
@@ -657,7 +657,6 @@
     lines.push("");
     lines.push("*Cliente*");
     lines.push(client.name);
-    if (client.phone) lines.push("Telefone: " + client.phone);
     lines.push("");
     lines.push("*" + $("fulfillment").value + "*");
     if ($("fulfillment").value === "Entrega") {
