@@ -111,6 +111,8 @@ function migrate(PDO $pdo): void
             description TEXT NOT NULL,
             price REAL NOT NULL DEFAULT 0,
             available INTEGER NOT NULL DEFAULT 1,
+            purchasable INTEGER NOT NULL DEFAULT 1,
+            show_price INTEGER NOT NULL DEFAULT 1,
             photo TEXT NOT NULL DEFAULT '',
             position INTEGER NOT NULL DEFAULT 0
         );
@@ -124,6 +126,14 @@ function migrate(PDO $pdo): void
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
     ");
+
+    $itemColumns = array_column($pdo->query('PRAGMA table_info(items)')->fetchAll(), 'name');
+    if (!in_array('purchasable', $itemColumns, true)) {
+        $pdo->exec('ALTER TABLE items ADD COLUMN purchasable INTEGER NOT NULL DEFAULT 1');
+    }
+    if (!in_array('show_price', $itemColumns, true)) {
+        $pdo->exec('ALTER TABLE items ADD COLUMN show_price INTEGER NOT NULL DEFAULT 1');
+    }
 }
 
 function seed_defaults(PDO $pdo): void
@@ -186,6 +196,8 @@ function default_state(): array
                 'description' => 'Pão brioche, hambúrguer 120g, queijo, alface, tomate e molho da casa.',
                 'price' => 24.9,
                 'available' => true,
+                'purchasable' => true,
+                'showPrice' => true,
                 'photo' => '',
             ],
             [
@@ -195,6 +207,8 @@ function default_state(): array
                 'description' => 'Batata crocante com cheddar e bacon.',
                 'price' => 19.9,
                 'available' => true,
+                'purchasable' => true,
+                'showPrice' => true,
                 'photo' => '',
             ],
             [
@@ -204,6 +218,8 @@ function default_state(): array
                 'description' => 'Consulte sabores disponíveis.',
                 'price' => 6,
                 'available' => true,
+                'purchasable' => true,
+                'showPrice' => true,
                 'photo' => '',
             ],
         ],
@@ -241,6 +257,8 @@ function get_state(PDO $pdo, bool $publicOnly = false): array
                 'description' => (string) $row['description'],
                 'price' => (float) $row['price'],
                 'available' => (bool) $row['available'],
+                'purchasable' => (bool) $row['purchasable'],
+                'showPrice' => (bool) $row['show_price'],
                 'photo' => (string) $row['photo'],
             ];
         }, $pdo->query($itemsSql)->fetchAll()),
@@ -293,8 +311,8 @@ function save_state(PDO $pdo, array $state): void
 
         $pdo->exec('DELETE FROM items');
         $stmt = $pdo->prepare('
-            INSERT INTO items (id, name, category, description, price, available, photo, position)
-            VALUES (:id, :name, :category, :description, :price, :available, :photo, :position)
+            INSERT INTO items (id, name, category, description, price, available, purchasable, show_price, photo, position)
+            VALUES (:id, :name, :category, :description, :price, :available, :purchasable, :show_price, :photo, :position)
         ');
         foreach ($items as $position => $item) {
             $stmt->execute([
@@ -304,6 +322,8 @@ function save_state(PDO $pdo, array $state): void
                 ':description' => trim((string) ($item['description'] ?? '')),
                 ':price' => (float) ($item['price'] ?? 0),
                 ':available' => !empty($item['available']) ? 1 : 0,
+                ':purchasable' => !array_key_exists('purchasable', $item) || !empty($item['purchasable']) ? 1 : 0,
+                ':show_price' => !array_key_exists('showPrice', $item) || !empty($item['showPrice']) ? 1 : 0,
                 ':photo' => (string) ($item['photo'] ?? ''),
                 ':position' => $position,
             ]);

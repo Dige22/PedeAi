@@ -21,7 +21,7 @@
     return {
       store: {
         name: "PedeAi",
-        subtitle: "Cardápio virtual com pedido pelo WhatsApp.",
+        subtitle: "Catálogo, portfólio e pedidos em um só lugar.",
         address: "",
         whatsapp: "",
         deliveryFee: 0,
@@ -214,7 +214,9 @@
     value = value || emptyState();
     value.store = Object.assign(emptyState().store, value.store || {});
     value.categories = Array.isArray(value.categories) ? value.categories : [];
-    value.items = Array.isArray(value.items) ? value.items : [];
+    value.items = Array.isArray(value.items) ? value.items.map(function (item) {
+      return Object.assign({ available: true, purchasable: true, showPrice: true }, item || {});
+    }) : [];
     if (!value.categories.length) value.categories = ["Cardápio"];
     return value;
   }
@@ -265,6 +267,14 @@
     });
     $("newItem").addEventListener("click", function () { openItemDialog(); });
     $("itemPhoto").addEventListener("change", onPhotoChange);
+    $("itemPurchasable").addEventListener("change", function () {
+      if (this.checked) $("itemShowPrice").checked = true;
+      syncItemSaleOptions();
+    });
+    $("itemShowPrice").addEventListener("change", function () {
+      if (!this.checked) $("itemPurchasable").checked = false;
+      syncItemSaleOptions();
+    });
     $("itemForm").addEventListener("submit", saveItem);
     $("itemDialogClose").addEventListener("click", function () { $("itemDialog").close(); });
     $("deleteItem").addEventListener("click", deleteCurrentItem);
@@ -342,10 +352,12 @@
     $("adminItems").innerHTML = state.items.map(function (item) {
       var statusClass = item.available ? "ok" : "off";
       var statusText = item.available ? "Disponível" : "Oculto";
+      var priceText = item.showPrice !== false ? money(item.price) : "Sem preço";
+      var saleText = item.purchasable !== false ? "À venda" : "Mostruário";
       return '<article class="admin-card">' +
         renderPhoto(item, "thumb") +
-        '<div><strong>' + escapeHtml(item.name) + '</strong><small>' + escapeHtml(item.category) + " · " + money(item.price) + '</small>' +
-        '<div class="muted-row"><span class="mini-pill ' + statusClass + '">' + statusText + '</span></div></div>' +
+        '<div><strong>' + escapeHtml(item.name) + '</strong><small>' + escapeHtml(item.category) + " · " + priceText + '</small>' +
+        '<div class="muted-row"><span class="mini-pill ' + statusClass + '">' + statusText + '</span><span class="mini-pill">' + saleText + '</span></div></div>' +
         '<button class="button secondary" type="button" data-edit="' + item.id + '">Editar</button>' +
         "</article>";
     }).join("");
@@ -369,14 +381,23 @@
     $("itemPrice").value = item ? textFromNumber(item.price) : "";
     $("itemDescription").value = item ? item.description : "";
     $("itemAvailable").checked = item ? item.available !== false : true;
+    $("itemPurchasable").checked = item ? item.purchasable !== false : true;
+    $("itemShowPrice").checked = item ? item.showPrice !== false : true;
     $("itemPhoto").value = "";
     $("deleteItem").style.visibility = item ? "visible" : "hidden";
+    syncItemSaleOptions();
     renderPhotoPreview();
     $("itemDialog").showModal();
   }
 
   function renderPhotoPreview() {
     $("photoPreview").innerHTML = pendingPhoto ? '<img src="' + pendingPhoto + '" alt="">' : "Foto";
+  }
+
+  function syncItemSaleOptions() {
+    var needsPrice = $("itemPurchasable").checked || $("itemShowPrice").checked;
+    $("itemPrice").disabled = !needsPrice;
+    $("itemPrice").required = needsPrice;
   }
 
   function onPhotoChange() {
@@ -399,6 +420,8 @@
       description: $("itemDescription").value.trim(),
       price: numberFromText($("itemPrice").value),
       available: $("itemAvailable").checked,
+      purchasable: $("itemPurchasable").checked,
+      showPrice: $("itemShowPrice").checked,
       photo: pendingPhoto
     };
 
@@ -406,7 +429,7 @@
       toast("Informe o nome do item");
       return;
     }
-    if (data.price <= 0) {
+    if ((data.purchasable || data.showPrice) && data.price <= 0) {
       toast("Informe um preço válido");
       return;
     }
@@ -488,10 +511,13 @@
   function renderPublicHeader() {
     document.title = state.store.name || "PedeAi";
     $("publicName").textContent = state.store.name || "PedeAi";
-    $("publicSubtitle").textContent = state.store.subtitle || "Cardápio virtual com pedido pelo WhatsApp.";
+    $("publicSubtitle").textContent = state.store.subtitle || "Catálogo, portfólio e pedidos em um só lugar.";
     $("publicAddress").textContent = state.store.address || "Atendimento local e delivery";
     $("publicStatus").textContent = state.store.status || "Aberto";
-    $("publicMinOrder").textContent = state.store.minOrder > 0 ? "Mínimo " + money(state.store.minOrder) : "";
+    var hasPurchasableItems = state.items.some(function (item) {
+      return item.available !== false && item.purchasable !== false;
+    });
+    $("publicMinOrder").textContent = hasPurchasableItems && state.store.minOrder > 0 ? "Mínimo " + money(state.store.minOrder) : "";
   }
 
   function renderPublicCategories() {
@@ -518,12 +544,14 @@
 
     $("publicItems").innerHTML = items.map(function (item) {
       var quantity = cart[item.id] || 0;
-      var control = quantity ? stepper(item.id, quantity) : '<button class="button" type="button" data-add="' + item.id + '">Adicionar</button>';
+      var canBuy = item.purchasable !== false;
+      var control = canBuy ? (quantity ? stepper(item.id, quantity) : '<button class="button" type="button" data-add="' + item.id + '">Adicionar</button>') : '<span class="portfolio-label">Somente exposição</span>';
+      var price = item.showPrice !== false ? '<span class="price">' + money(item.price) + '</span>' : '<span></span>';
       return '<article class="menu-card">' +
         renderPhoto(item, "menu-photo") +
         '<div class="menu-body"><div><span class="mini-pill">' + escapeHtml(item.category) + '</span><h2>' + escapeHtml(item.name) + '</h2></div>' +
         '<p>' + escapeHtml(item.description || "Sem descrição.") + '</p>' +
-        '<div class="menu-footer"><span class="price">' + money(item.price) + '</span>' + control + '</div></div></article>';
+        '<div class="menu-footer">' + price + control + '</div></div></article>';
     }).join("");
 
     bindQuantityButtons($("publicItems"));
@@ -544,6 +572,8 @@
   }
 
   function changeCart(id, delta) {
+    var item = state.items.find(function (entry) { return entry.id === id; });
+    if (!item || item.available === false || item.purchasable === false) return;
     var next = (cart[id] || 0) + delta;
     if (next <= 0) delete cart[id];
     else cart[id] = next;
@@ -555,7 +585,7 @@
   function cartEntries() {
     return Object.keys(cart).map(function (id) {
       var item = state.items.find(function (entry) { return entry.id === id; });
-      return item ? { item: item, quantity: cart[id] } : null;
+      return item && item.available !== false && item.purchasable !== false ? { item: item, quantity: cart[id] } : null;
     }).filter(Boolean);
   }
 
@@ -574,7 +604,7 @@
   }
 
   function renderCartBar() {
-    var count = Object.keys(cart).reduce(function (sum, id) { return sum + cart[id]; }, 0);
+    var count = cartEntries().reduce(function (sum, entry) { return sum + entry.quantity; }, 0);
     $("cartBar").classList.toggle("visible", count > 0);
     $("cartCount").textContent = count + (count === 1 ? " item" : " itens");
     $("cartTotal").textContent = money(subtotal());

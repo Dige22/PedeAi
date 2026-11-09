@@ -466,6 +466,18 @@ textarea {
   margin-top: 14px;
 }
 
+.item-options {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.item-options small {
+  max-width: 340px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .photo-preview {
   width: 132px;
   height: 94px;
@@ -649,6 +661,12 @@ textarea {
 .price {
   font-size: 18px;
   font-weight: 900;
+}
+
+.portfolio-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .stepper {

@@ -30,12 +30,12 @@
       <span class="brand-mark">P</span>
       <span>
         <strong>PedeAi</strong>
-        <small>Painel do cardápio</small>
+        <small>Painel do site</small>
       </span>
     </a>
     <nav class="top-actions">
       <span class="admin-user" id="adminUser"></span>
-      <a class="icon-button" href="index.html" title="Ver cardápio" aria-label="Ver cardápio">
+      <a class="icon-button" href="index.html" title="Ver site" aria-label="Ver site">
         <span aria-hidden="true">↗</span>
       </a>
       <button class="icon-button" id="logoutButton" title="Sair" aria-label="Sair">
@@ -48,16 +48,16 @@
     <section class="panel">
       <div class="section-title">
         <span>
-          <strong>Dados da loja</strong>
-          <small>Essas informações aparecem no cardápio e no WhatsApp.</small>
+          <strong>Dados do site</strong>
+          <small>Essas informações aparecem no site e, quando houver vendas, no WhatsApp.</small>
         </span>
         <span class="status-pill" id="saveStatus">Salvo</span>
       </div>
 
       <div class="form-grid">
         <label>
-          Nome da loja
-          <input id="storeName" type="text" placeholder="Ex.: Lanchonete do João">
+          Nome do negócio ou projeto
+          <input id="storeName" type="text" placeholder="Ex.: Estúdio do João">
         </label>
         <label>
           WhatsApp dos pedidos
@@ -65,7 +65,7 @@
         </label>
         <label>
           Frase curta
-          <input id="storeSubtitle" type="text" placeholder="Ex.: Hambúrguer artesanal e porções">
+          <input id="storeSubtitle" type="text" placeholder="Ex.: Projetos, serviços e produtos">
         </label>
         <label>
           Endereço ou região
@@ -116,7 +116,7 @@
     <section class="panel">
       <div class="section-title">
         <span>
-          <strong>Itens do cardápio</strong>
+          <strong>Itens do site</strong>
           <small id="itemCount">0 itens cadastrados</small>
         </span>
         <button class="button" id="newItem">Novo item</button>
@@ -128,7 +128,7 @@
       <div class="section-title">
         <span>
           <strong>Backup</strong>
-          <small>Exporte ou restaure os dados do banco deste cardápio.</small>
+          <small>Exporte ou restaure os dados deste site.</small>
         </span>
       </div>
       <div class="action-grid">
@@ -149,15 +149,15 @@
       <div class="form-grid">
         <label>
           Nome
-          <input id="itemName" type="text" required placeholder="Ex.: X-burger">
+          <input id="itemName" type="text" required placeholder="Ex.: Projeto residencial">
         </label>
         <label>
           Categoria
           <select id="itemCategory"></select>
         </label>
         <label>
-          Preço
-          <input id="itemPrice" type="text" inputmode="decimal" required placeholder="0,00">
+          Preço (opcional para mostruário)
+          <input id="itemPrice" type="text" inputmode="decimal" placeholder="0,00">
         </label>
         <label>
           Foto
@@ -167,15 +167,26 @@
 
       <label class="full-label">
         Descrição
-        <textarea id="itemDescription" placeholder="Ingredientes, tamanho, ponto da carne, acompanhamentos..."></textarea>
+        <textarea id="itemDescription" placeholder="Detalhes, características, materiais, serviços ou informações do item..."></textarea>
       </label>
 
       <div class="preview-row">
         <div class="photo-preview" id="photoPreview"></div>
-        <label class="toggle-row">
-          <input id="itemAvailable" type="checkbox" checked>
-          Disponível no cardápio
-        </label>
+        <div class="item-options">
+          <label class="toggle-row">
+            <input id="itemAvailable" type="checkbox" checked>
+            Exibir no site
+          </label>
+          <label class="toggle-row">
+            <input id="itemPurchasable" type="checkbox" checked>
+            Permitir compra
+          </label>
+          <label class="toggle-row">
+            <input id="itemShowPrice" type="checkbox" checked>
+            Mostrar preço
+          </label>
+          <small>Para usar como portfólio, desmarque “Permitir compra” e “Mostrar preço”.</small>
+        </div>
       </div>
 
       <div class="dialog-actions">

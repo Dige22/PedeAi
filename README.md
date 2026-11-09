@@ -1,6 +1,6 @@
 # PedeAi
 
-Cardápio virtual em PHP com painel administrativo protegido por login e dados salvos em SQLite.
+Catálogo virtual em PHP para delivery, produtos e portfólio, com painel administrativo protegido por login e dados salvos em SQLite. Cada item pode exibir ou ocultar o preço e permitir ou bloquear compras.
 
 ## Publicação
 
